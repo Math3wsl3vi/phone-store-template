@@ -8,6 +8,7 @@ import { ProductCatalog } from "./components/home/ProductCatalog";
 import SingleProductPage from "./components/catalog/SingleProductPage";
 import { CartProvider } from "./context/CartContext"; 
 import CheckoutPage from "./components/cart/Checkout";
+import { products } from "./utlis/data";
 
 export function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -21,7 +22,7 @@ export function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/catalog" element={<ProductCatalog />} />
-              <Route path="/product/:id" element={<SingleProductPage />} />
+            <Route path="/product/:productId" element={<SingleProductPage products={products} />} />
                <Route path="/checkout" element={<CheckoutPage />} /> 
             </Routes>
           </main>

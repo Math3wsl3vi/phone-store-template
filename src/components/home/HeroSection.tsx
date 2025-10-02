@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Link } from "react-router-dom";
 
 const newArrivals = [
   {
@@ -48,11 +49,11 @@ export function HeroSection() {
         {/* Products Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {newArrivals.map((phone) => (
-            <div
-              key={phone.id}
-              className="group relative bg-white shadow-md overflow-hidden hover:shadow-xl transition duration-300 w-full rounded-lg"
-            >
-              {/* Badge */}
+            <Link to={`/product/${phone.id}`} className="group block" key={phone.id}>
+              <div
+                className="group relative bg-white shadow-md overflow-hidden hover:shadow-xl transition duration-300 w-full rounded-lg"
+              >
+                {/* Badge */}
               {phone.isNew && (
                 <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
                   New
@@ -79,6 +80,7 @@ export function HeroSection() {
                 </button>
               </div>
             </div>
+          </Link>
           ))}
         </div>
       </div>

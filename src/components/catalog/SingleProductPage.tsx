@@ -1,82 +1,54 @@
-import React, { useState } from "react";
-import { ShoppingCart, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { useCart } from "../../context/CartContext";
+import { products } from "../../utlis/data";
 
-const products = [
-  {
-    id: 1,
-    name: "iPhone 17 Pro Max",
-    image:
-      "https://i.pinimg.com/736x/19/b2/f6/19b2f6dc397a1be6fd5005303264a7c9.jpg",
-    price: 129900,
-    specs: { display: '6.9" Super Retina XDR', processor: "A19 Pro", storage: "256GB" },
-    isNew: true,
-    brand: "iPhone",
-    colors: ["Titanium", "Blue", "White", "Black"],
-  },
-  {
-    id: 2,
-    name: "Samsung Galaxy S24 Ultra",
-    image:
-      "https://i.pinimg.com/736x/24/22/32/24223258deb2711a6cfb6ffe2ba3b5e9.jpg",
-    price: 119900,
-    specs: { display: '6.8" Dynamic AMOLED', processor: "Snapdragon 8 Gen 3", storage: "256GB" },
-    isNew: true,
-    brand: "Samsung",
-    colors: ["Titanium Gray", "Phantom Black", "Cream"],
-  },
-  {
-    id: 3,
-    name: "iPhone 17 Air",
-    image:
-      "https://i.pinimg.com/736x/06/f2/fc/06f2fce304cbbd6bc50fb773c6615b8f.jpg",
-    price: 99999,
-    specs: { display: '6.1" Retina XDR', processor: "A19", storage: "128GB" },
-    isNew: true,
-    brand: "iPhone",
-    colors: ["Silver", "Gold", "Space Black"],
-  },
-  {
-    id: 4,
-    name: "Samsung Galaxy Z Fold 6",
-    image:
-      "https://i.pinimg.com/736x/4a/0e/72/4a0e729aeaf14e4887f47dc21fd989a3.jpg",
-    price: 179900,
-    specs: { display: '7.6" Foldable Dynamic AMOLED', processor: "Snapdragon 8 Gen 3", storage: "512GB" },
-    isNew: true,
-    brand: "Samsung",
-    colors: ["Navy", "Silver Shadow", "Pink"],
-  },
-  {
-    id: 5,
-    name: "iPhone 16 Pro",
-    image:
-      "https://i.pinimg.com/736x/75/5f/44/755f44e406776455518d3af39a2a9bfe.jpg",
-    price: 99999,
-    specs: { display: '6.1" Super Retina XDR', processor: "A18 Pro", storage: "256GB" },
-    brand: "iPhone",
-    colors: ["Natural Titanium", "Blue Titanium", "White Titanium"],
-  },
-  {
-    id: 6,
-    name: "iPhone 15 Pro Max",
-    image:
-      "https://i.pinimg.com/1200x/18/84/24/1884248df0286062436ea23d29ef5183.jpg",
-    price: 99999,
-    specs: { display: '6.7" Dynamic AMOLED', processor: "Snapdragon 8 Gen 3", storage: "256GB" },
-    brand: "Samsung",
-    colors: ["Green", "Gray", "Gold"],
-  },
-];
+interface SingleProductPageProps {
+  products: typeof products; // Or define a proper Product type
+}
 
-export default function SingleProductPage() {
-  const [currentProductId, setCurrentProductId] = useState(1);
-  const product = products.find((p) => p.id === currentProductId) || products[0];
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
-   const { addToCart } = useCart();
+
+export default function SingleProductPage({ products }: SingleProductPageProps) {
+  const { productId } = useParams();
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  
+  // Find the product based on URL parameter with proper type handling
+  const product = products.find((p) => p.id === parseInt(productId || "1")) || products[0];
+  
+  const [selectedColor, setSelectedColor] = useState("");
+
+  // Reset selected color when product changes
+  useEffect(() => {
+    if (product) {
+      setSelectedColor(product.colors?.[0] || "");
+    }
+  }, [product]);
+
+  // Handle navigation to product details with proper typing
+  const handleProductClick = (newProductId: number) => {
+    navigate(`/product/${newProductId}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Handle add to cart with proper typing
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart({
+        ...product,
+        id: String(product.id), // convert number -> string
+        quantity: 1,
+      });
+    }
+  };
+
+  if (!product) {
+    return <div>Product not found</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-20">
       {/* Product Section */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Product Header */}
@@ -167,17 +139,13 @@ export default function SingleProductPage() {
             {/* Action Buttons */}
             <div className="space-y-4">
               <button 
-              onClick={() => addToCart({
-                    ...product,
-                    id: String(product.id), // convert number -> string
-                    quantity: 1,
-                    })
-                  }
-              className="w-full bg-blue-600 text-white py-4 rounded-full font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                onClick={handleAddToCart}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
                 <Plus className="w-5 h-5" />
                 Add to Bag
               </button>
-              <button className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-full font-semibold text-lg hover:bg-blue-50 transition-colors">
+              <button className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors">
                 Buy Now
               </button>
             </div>
@@ -215,17 +183,13 @@ export default function SingleProductPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {products
-              .filter((p) => p.id !== currentProductId)
+              .filter((p) => p.id !== product.id)
               .slice(0, 3)
               .map((relatedProduct) => (
                 <div
                   key={relatedProduct.id}
                   className="group cursor-pointer"
-                  onClick={() => {
-                    setCurrentProductId(relatedProduct.id);
-                    setSelectedColor(relatedProduct.colors?.[0] || "");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  onClick={() => handleProductClick(relatedProduct.id)}
                 >
                   <div className="bg-gray-50 rounded-3xl overflow-hidden mb-4 transition-transform group-hover:scale-105">
                     <img

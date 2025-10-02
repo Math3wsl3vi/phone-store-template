@@ -6,6 +6,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext"; // adjust path
+import { Link, useLocation } from "react-router-dom";
 
 interface HeaderProps {
   onCartClick: () => void;
@@ -14,20 +15,23 @@ interface HeaderProps {
 export function Header({ onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
 
-  // 👇 use cart from context
+  // cart from context
   const { cartItems } = useCart();
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      // Force scrolled mode on non-homepages
+      setIsScrolled(window.scrollY > 10 || location.pathname !== "/");
     };
+    handleScroll(); // run once when route changes
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location]);
 
-  // Switch colors based on scroll
+  // Switch colors
   const textColor = isScrolled
     ? "text-gray-800 hover:text-black"
     : "text-white hover:text-gray-200";
@@ -42,37 +46,35 @@ export function Header({ onCartClick }: HeaderProps) {
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center">
-          <a
-            href="/"
-            className={`text-2xl font-bold transition-colors ${
-              isScrolled ? "text-black" : "text-white"
-            }`}
-          >
-            PremiumPhones
-          </a>
-        </div>
+        <Link
+          to="/"
+          className={`text-2xl font-bold transition-colors ${
+            isScrolled ? "text-black" : "text-white"
+          }`}
+        >
+          PremiumPhones
+        </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="/" className={`${textColor} font-medium`}>
+          <Link to="/" className={`${textColor} font-medium`}>
             Home
-          </a>
-          <a href="/iphones" className={`${textColor} font-medium`}>
+          </Link>
+          <Link to="/iphones" className={`${textColor} font-medium`}>
             iPhones
-          </a>
-          <a href="/samsung" className={`${textColor} font-medium`}>
+          </Link>
+          <Link to="/samsung" className={`${textColor} font-medium`}>
             Samsung
-          </a>
-          <a href="/other-brands" className={`${textColor} font-medium`}>
+          </Link>
+          <Link to="/other-brands" className={`${textColor} font-medium`}>
             Other Brands
-          </a>
-          <a href="/support" className={`${textColor} font-medium`}>
+          </Link>
+          <Link to="/support" className={`${textColor} font-medium`}>
             Support
-          </a>
+          </Link>
         </nav>
 
-        {/* Search and Cart */}
+        {/* Search + Cart */}
         <div className="hidden md:flex items-center space-x-6">
           <div className="relative">
             <input
@@ -80,7 +82,7 @@ export function Header({ onCartClick }: HeaderProps) {
               placeholder="Search"
               className={`pl-10 pr-4 py-2 rounded-lg border ${
                 isScrolled
-                  ? "border-gray-300 bg-white text-gray-800"
+                  ? "border-gray-300 bg-white text-gray-800 placeholder-gray-400"
                   : "border-white/50 bg-white/10 text-white placeholder-white/70"
               } focus:outline-none focus:ring-2 focus:ring-gray-200 w-48`}
             />
@@ -125,17 +127,9 @@ export function Header({ onCartClick }: HeaderProps) {
             className="p-2 rounded-md hover:bg-gray-100"
           >
             {isMenuOpen ? (
-              <XIcon
-                className={`h-6 w-6 ${
-                  isScrolled ? "text-black" : "text-white"
-                }`}
-              />
+              <XIcon className={`h-6 w-6 ${isScrolled ? "text-black" : "text-white"}`} />
             ) : (
-              <MenuIcon
-                className={`h-6 w-6 ${
-                  isScrolled ? "text-black" : "text-white"
-                }`}
-              />
+              <MenuIcon className={`h-6 w-6 ${isScrolled ? "text-black" : "text-white"}`} />
             )}
           </button>
         </div>
@@ -156,21 +150,21 @@ export function Header({ onCartClick }: HeaderProps) {
               </div>
             </div>
             <nav className="flex flex-col space-y-4 pb-4">
-              <a href="/" className="text-gray-800 hover:text-black font-medium py-2">
+              <Link to="/" className="text-gray-800 hover:text-black font-medium py-2">
                 Home
-              </a>
-              <a href="/iphones" className="text-gray-800 hover:text-black font-medium py-2">
+              </Link>
+              <Link to="/iphones" className="text-gray-800 hover:text-black font-medium py-2">
                 iPhones
-              </a>
-              <a href="/samsung" className="text-gray-800 hover:text-black font-medium py-2">
+              </Link>
+              <Link to="/samsung" className="text-gray-800 hover:text-black font-medium py-2">
                 Samsung
-              </a>
-              <a href="/other-brands" className="text-gray-800 hover:text-black font-medium py-2">
+              </Link>
+              <Link to="/other-brands" className="text-gray-800 hover:text-black font-medium py-2">
                 Other Brands
-              </a>
-              <a href="/support" className="text-gray-800 hover:text-black font-medium py-2">
+              </Link>
+              <Link to="/support" className="text-gray-800 hover:text-black font-medium py-2">
                 Support
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
