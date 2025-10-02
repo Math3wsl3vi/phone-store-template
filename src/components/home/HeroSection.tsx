@@ -73,7 +73,7 @@ export function HeroSection() {
                 <h3 className="text-lg font-semibold text-gray-900">
                   {phone.name}
                 </h3>
-                <p className="text-gray-600">Ksh {phone.price}</p>
+                <p className="text-gray-600"> Ksh {phone.price.toLocaleString()}</p>
                 <button className="mt-4 w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition">
                   Buy Now
                 </button>

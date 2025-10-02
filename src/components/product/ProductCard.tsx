@@ -39,7 +39,10 @@ export function ProductCard({ id, name, image, price, specs, isNew }: ProductCar
         <p className="text-gray-600 text-sm mb-2">
           {specs.display} • {specs.processor} • {specs.storage}
         </p>
-        <p className="text-xl font-bold text-gray-900">Ksh {price}</p>
+        <p className="text-xl font-bold text-gray-900">
+            Ksh {price.toLocaleString()}
+          </p>
+
         <button className="mt-4 w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition">
           Add to Cart
         </button>

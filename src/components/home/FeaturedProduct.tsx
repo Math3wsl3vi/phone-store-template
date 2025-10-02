@@ -54,20 +54,24 @@ export function FeaturedProduct() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center mb-8">
-              <div className="mr-6">
-                <p className="text-sm text-gray-500 mb-1">Starting at</p>
-                <p className="text-3xl font-bold">Ksh 220,000</p>
-              </div>
-              <div className="flex space-x-4">
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                  Add to Cart
-                </button>
-                <button className="bg-gray-100 text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium">
-                  Learn More
-                </button>
-              </div>
+           <div className="flex flex-col md:flex-row md:items-center mb-8 space-y-4 md:space-y-0 md:space-x-6">
+            {/* Price */}
+            <div className="md:mr-6">
+              <p className="text-sm text-gray-500 mb-1">Starting at</p>
+              <p className="text-3xl font-bold">Ksh 220,000</p>
             </div>
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                Add to Cart
+              </button>
+              <button className="bg-gray-100 text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+                Learn More
+              </button>
+            </div>
+          </div>
+
             <div className="flex items-center space-x-4">
               <div className="w-5 h-5 rounded-full bg-black border-2 border-white shadow-sm"></div>
               <div className="w-5 h-5 rounded-full bg-blue-600 border-2 border-white shadow-sm"></div>
