@@ -5,6 +5,7 @@ import {
   MenuIcon,
   XIcon,
 } from "lucide-react";
+import { useCart } from "../../context/CartContext"; // adjust path
 
 interface HeaderProps {
   onCartClick: () => void;
@@ -13,6 +14,10 @@ interface HeaderProps {
 export function Header({ onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // 👇 use cart from context
+  const { cartItems } = useCart();
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,7 +28,9 @@ export function Header({ onCartClick }: HeaderProps) {
   }, []);
 
   // Switch colors based on scroll
-  const textColor = isScrolled ? "text-gray-800 hover:text-black" : "text-white hover:text-gray-200";
+  const textColor = isScrolled
+    ? "text-gray-800 hover:text-black"
+    : "text-white hover:text-gray-200";
 
   return (
     <header
@@ -90,9 +97,11 @@ export function Header({ onCartClick }: HeaderProps) {
             <ShoppingCartIcon
               className={`h-6 w-6 ${isScrolled ? "text-black" : "text-white"}`}
             />
-            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              0
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -105,18 +114,28 @@ export function Header({ onCartClick }: HeaderProps) {
             <ShoppingCartIcon
               className={`h-6 w-6 ${isScrolled ? "text-black" : "text-white"}`}
             />
-            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              0
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-2 rounded-md hover:bg-gray-100"
           >
             {isMenuOpen ? (
-              <XIcon className={`h-6 w-6 ${isScrolled ? "text-black" : "text-white"}`} />
+              <XIcon
+                className={`h-6 w-6 ${
+                  isScrolled ? "text-black" : "text-white"
+                }`}
+              />
             ) : (
-              <MenuIcon className={`h-6 w-6 ${isScrolled ? "text-black" : "text-white"}`} />
+              <MenuIcon
+                className={`h-6 w-6 ${
+                  isScrolled ? "text-black" : "text-white"
+                }`}
+              />
             )}
           </button>
         </div>

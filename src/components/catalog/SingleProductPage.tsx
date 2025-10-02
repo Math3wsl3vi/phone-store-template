@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
+import { useCart } from "../../context/CartContext";
 
 const products = [
   {
@@ -72,52 +73,10 @@ export default function SingleProductPage() {
   const [currentProductId, setCurrentProductId] = useState(1);
   const product = products.find((p) => p.id === currentProductId) || products[0];
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
+   const { addToCart } = useCart();
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-12">
-              <h1 className="text-xl font-semibold">Store</h1>
-              <div className="hidden md:flex space-x-8 text-sm">
-                <a href="#" className="text-gray-600 hover:text-gray-900">Mac</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900">iPad</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900">iPhone</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900">Watch</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900">AirPods</a>
-              </div>
-            </div>
-            <ShoppingCart className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900" />
-          </div>
-        </div>
-      </nav>
-
-      {/* Product Selector (for demo) */}
-      <div className="bg-gray-50 py-4 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-2 overflow-x-auto">
-            {products.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  setCurrentProductId(p.id);
-                  setSelectedColor(p.colors?.[0] || "");
-                }}
-                className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  currentProductId === p.id
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Product Section */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Product Header */}
@@ -207,7 +166,14 @@ export default function SingleProductPage() {
 
             {/* Action Buttons */}
             <div className="space-y-4">
-              <button className="w-full bg-blue-600 text-white py-4 rounded-full font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+              <button 
+              onClick={() => addToCart({
+                    ...product,
+                    id: String(product.id), // convert number -> string
+                    quantity: 1,
+                    })
+                  }
+              className="w-full bg-blue-600 text-white py-4 rounded-full font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
                 <Plus className="w-5 h-5" />
                 Add to Bag
               </button>

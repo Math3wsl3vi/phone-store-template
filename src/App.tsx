@@ -6,24 +6,29 @@ import { HomePage } from "./pages/Home";
 import { CartPanel } from "./components/cart/CartPanel";
 import { ProductCatalog } from "./components/home/ProductCatalog";
 import SingleProductPage from "./components/catalog/SingleProductPage";
+import { CartProvider } from "./context/CartContext"; 
+import { CheckoutPage } from "./components/cart/Checkout";
 
 export function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-white">
-        <Header onCartClick={() => setIsCartOpen(true)} />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/catalog" element={<ProductCatalog />} />
-            <Route path="/product/:id" element={<SingleProductPage />} />
-          </Routes>
-        </main>
-        <Footer />
-        <CartPanel isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      </div>
+      <CartProvider>
+        <div className="flex flex-col min-h-screen bg-white font-poppins">
+          <Header onCartClick={() => setIsCartOpen(true)} />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/catalog" element={<ProductCatalog />} />
+              <Route path="/product/:id" element={<SingleProductPage />} />
+               <Route path="/checkout" element={<CheckoutPage />} /> 
+            </Routes>
+          </main>
+          <Footer />
+          <CartPanel isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        </div>
+      </CartProvider>
     </Router>
   );
 }
