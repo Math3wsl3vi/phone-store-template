@@ -65,7 +65,7 @@ const products = [
 
 export function ProductCatalog() {
   const [selectedBrand, setSelectedBrand] = useState("All");
-  const [priceRange, setPriceRange] = useState([0, 2000]);
+  const [priceRange, setPriceRange] = useState([0, 2000000]);
   const [sortBy, setSortBy] = useState("newest");
 
   const filteredProducts = products.filter((product) => {
