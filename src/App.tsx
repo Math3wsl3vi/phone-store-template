@@ -7,7 +7,7 @@ import { CartPanel } from "./components/cart/CartPanel";
 import { ProductCatalog } from "./components/home/ProductCatalog";
 import SingleProductPage from "./components/catalog/SingleProductPage";
 import { CartProvider } from "./context/CartContext"; 
-import { CheckoutPage } from "./components/cart/Checkout";
+import CheckoutPage from "./components/cart/Checkout";
 
 export function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
