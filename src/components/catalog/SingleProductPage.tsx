@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import { useCart } from "../../context/CartContext";
 import { products } from "../../utlis/data";
+import { useCartStore } from "../../store/cartStore";
 
 interface SingleProductPageProps {
   products: typeof products; // Or define a proper Product type
@@ -12,7 +12,20 @@ interface SingleProductPageProps {
 export default function SingleProductPage({ products }: SingleProductPageProps) {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const addToCart = useCartStore((state) => state.addToCart);
+
+    const handleAddToCart = () => {
+    if (product) {
+      addToCart({
+        id: String(product.id),
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: product.image,
+      });
+    }
+  };
+
   
   // Find the product based on URL parameter with proper type handling
   const product = products.find((p) => p.id === parseInt(productId || "1")) || products[0];
@@ -30,17 +43,6 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
   const handleProductClick = (newProductId: number) => {
     navigate(`/product/${newProductId}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  // Handle add to cart with proper typing
-  const handleAddToCart = () => {
-    if (product) {
-      addToCart({
-        ...product,
-        id: String(product.id), // convert number -> string
-        quantity: 1,
-      });
-    }
   };
 
   if (!product) {

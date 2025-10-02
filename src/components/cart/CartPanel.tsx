@@ -1,6 +1,6 @@
 import React from "react";
 import { XIcon, ShoppingCartIcon } from "lucide-react";
-import { useCart } from "../../context/CartContext"; // adjust path to your context
+import { useCartStore } from "../../store/cartStore"; // adjust path to your Zustand store
 import { useNavigate } from "react-router-dom";
 
 interface CartPanelProps {
@@ -9,11 +9,11 @@ interface CartPanelProps {
 }
 
 export function CartPanel({ isOpen, onClose }: CartPanelProps) {
-  const { cartItems, removeFromCart, clearCart } = useCart(); // 👈 from context
-
+  // Use Zustand store - select only what you need
+  const { cartItems, removeFromCart, clearCart } = useCartStore();
+  
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const navigate = useNavigate();
-
 
   return (
     <div
@@ -69,6 +69,7 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
                         <p className="text-sm text-gray-500">
                           Ksh {item.price.toLocaleString()} × {item.quantity}
                         </p>
+                        <p className="text-sm text-gray-400">Total: Ksh {(item.price * item.quantity).toLocaleString()}</p>
                       </div>
                     </div>
                     <button
@@ -94,11 +95,11 @@ export function CartPanel({ isOpen, onClose }: CartPanelProps) {
               <span>Calculated at checkout</span>
             </div>
             <button
-               onClick={() => {
-              onClose(); // close cart panel
-              navigate("/checkout");
-            }}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors mb-3 font-medium"
+              onClick={() => {
+                onClose(); // close cart panel
+                navigate("/checkout");
+              }}
+              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors mb-3 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={cartItems.length === 0}
             >
               Proceed to Checkout

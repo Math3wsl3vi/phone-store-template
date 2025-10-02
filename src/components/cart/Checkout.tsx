@@ -1,9 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { CartItem, useCart } from "../../context/CartContext";
+import { useCartStore, useCartTotal } from "../../store/cartStore"; // Import from Zustand store
 
 export default function CheckoutPage() {
-  const { cartItems, total } = useCart();
+  // Use Zustand store
+  const { cartItems } = useCartStore();
+  const total = useCartTotal(); // Use the computed total
+  
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -26,7 +29,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-white pt-20">
-
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Form - 2 columns */}
@@ -152,7 +154,7 @@ export default function CheckoutPage() {
                   <div className="space-y-6">
                     {/* Items */}
                     <div className="space-y-4">
-                      {cartItems.map((item: CartItem, idx: number) => (
+                      {cartItems.map((item, idx: number) => (
                         <div key={idx} className="flex gap-4 mb-10">
                           <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
                             <img

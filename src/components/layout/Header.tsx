@@ -5,7 +5,7 @@ import {
   MenuIcon,
   XIcon,
 } from "lucide-react";
-import { useCart } from "../../context/CartContext"; // adjust path
+import { useCartStore } from "../../store/cartStore"; // Import from Zustand store
 import { Link, useLocation } from "react-router-dom";
 
 interface HeaderProps {
@@ -17,8 +17,8 @@ export function Header({ onCartClick }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
-  // cart from context
-  const { cartItems } = useCart();
+  // Use Zustand store - select only cartItems
+  const cartItems = useCartStore((state) => state.cartItems);
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
