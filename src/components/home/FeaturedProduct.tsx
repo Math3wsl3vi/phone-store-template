@@ -62,12 +62,9 @@ export function FeaturedProduct() {
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                Add to Cart
-              </button>
-              <button className="bg-gray-100 text-black px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium">
-                Learn More
+            <div className="w-full md:w-1/2">
+              <button className=" w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+               Buy Now
               </button>
             </div>
           </div>
