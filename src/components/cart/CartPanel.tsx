@@ -1,5 +1,5 @@
 import React from 'react';
-import { XIcon, ShoppingCartIcon, PlusIcon, MinusIcon } from 'lucide-react';
+import { XIcon, ShoppingCartIcon } from 'lucide-react';
 interface CartPanelProps {
   isOpen: boolean;
   onClose: () => void;

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 interface ProductCardProps {
   id: number;
@@ -15,7 +16,8 @@ interface ProductCardProps {
 
 export function ProductCard({ id, name, image, price, specs, isNew }: ProductCardProps) {
   return (
-    <div className="group bg-white shadow-md hover:shadow-xl transition overflow-hidden">
+       <Link to={`/product/${id}`} className="group block">
+      <div className="group bg-white shadow-md hover:shadow-xl transition overflow-hidden">
       {/* Image wrapper with fixed aspect ratio */}
       <div className="relative w-full h-64 overflow-hidden">
         <div className="relative w-full h-72 flex items-center justify-center bg-gray-50 overflow-hidden">
@@ -48,5 +50,7 @@ export function ProductCard({ id, name, image, price, specs, isNew }: ProductCar
         </button>
       </div>
     </div>
+    </Link>
+  
   );
 }
