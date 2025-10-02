@@ -10,6 +10,7 @@
     "preview": "npx vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
     "framer-motion": "^12.23.22",
     "lucide-react": "0.522.0",
     "react": "^18.3.1",
