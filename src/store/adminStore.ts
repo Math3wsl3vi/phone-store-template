@@ -1,52 +1,63 @@
 // src/store/adminStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabaseAdmin } from '../lib/supabase';
 
 export interface Product {
-  id: number;
+  id: string;
   name: string;
-  image: string;
+  description: string;
   price: number;
+  image_url: string;
   specs: {
     display: string;
     processor: string;
     storage: string;
   };
-  isNew?: boolean;
   brand: string;
+  category: string;
   colors: string[];
   stock: number;
-  category: string;
+  is_new: boolean;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface Order {
   id: string;
-  customerName: string;
-  email: string;
-  phone: string;
-  address: string;
-  items: CartItem[];
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentMethod: string;
-  createdAt: string;
+  customer_id?: string;
+  total_amount: number;
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  payment_method: string;
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
+  shipping_address: any;
+  customer_email: string;
+  customer_phone: string;
+  customer_name: string;
+  created_at: string;
+  items: OrderItem[];
 }
 
-interface CartItem {
+export interface OrderItem {
   id: string;
-  name: string;
-  price: number;
+  product_id: string;
   quantity: number;
-  image: string;
+  unit_price: number;
+  product_name: string;
+  product_image: string;
 }
 
 interface AdminStore {
   products: Product[];
   orders: Order[];
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (id: number, product: Partial<Product>) => void;
-  deleteProduct: (id: number) => void;
-  updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  loading: boolean;
+  error: string | null;
+  fetchProducts: () => Promise<void>;
+  addProduct: (product: Omit<Product, 'id' | 'created_at' | 'is_active'>) => Promise<void>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  fetchOrders: () => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   getStats: () => {
     totalProducts: number;
     totalOrders: number;
@@ -58,49 +69,162 @@ interface AdminStore {
 export const useAdminStore = create<AdminStore>()(
   persist(
     (set, get) => ({
-      products: [
-        {
-          id: 1,
-          name: "iPhone 17 Pro Max",
-          image: "https://i.pinimg.com/736x/19/b2/f6/19b2f6dc397a1be6fd5005303264a7c9.jpg",
-          price: 129900,
-          specs: { display: '6.9" Super Retina XDR', processor: "A19 Pro", storage: "256GB" },
-          isNew: true,
-          brand: "iPhone",
-          colors: ["Titanium", "Blue", "White", "Black"],
-          stock: 50,
-          category: "flagship"
-        },
-        // Add your other products here with stock and category
-      ],
+      products: [],
       orders: [],
-      
-      addProduct: (product) => {
-        set((state) => ({
-          products: [...state.products, { ...product, id: Date.now() }]
-        }));
+      loading: false,
+      error: null,
+
+      fetchProducts: async () => {
+        set({ loading: true, error: null });
+        try {
+          const { data, error } = await supabaseAdmin
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          set({ products: data || [] });
+        } catch (error) {
+          set({ error: 'Failed to fetch products' });
+          console.error('Error fetching products:', error);
+        } finally {
+          set({ loading: false });
+        }
       },
 
-      updateProduct: (id, updatedProduct) => {
-        set((state) => ({
-          products: state.products.map((p) =>
-            p.id === id ? { ...p, ...updatedProduct } : p
-          )
-        }));
+      addProduct: async (productData) => {
+        set({ loading: true, error: null });
+        try {
+          const { data, error } = await supabaseAdmin
+            .from('products')
+            .insert([{
+              ...productData,
+              is_active: true,
+              created_at: new Date().toISOString(),
+            }])
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          set((state) => ({
+            products: [data, ...state.products],
+          }));
+        } catch (error) {
+          set({ error: 'Failed to add product' });
+          console.error('Error adding product:', error);
+          throw error;
+        } finally {
+          set({ loading: false });
+        }
       },
 
-      deleteProduct: (id) => {
-        set((state) => ({
-          products: state.products.filter((p) => p.id !== id)
-        }));
+      updateProduct: async (id, productData) => {
+        set({ loading: true, error: null });
+        try {
+          const { data, error } = await supabaseAdmin
+            .from('products')
+            .update(productData)
+            .eq('id', id)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          set((state) => ({
+            products: state.products.map((p) =>
+              p.id === id ? { ...p, ...data } : p
+            ),
+          }));
+        } catch (error) {
+          set({ error: 'Failed to update product' });
+          console.error('Error updating product:', error);
+          throw error;
+        } finally {
+          set({ loading: false });
+        }
       },
 
-      updateOrderStatus: (orderId, status) => {
-        set((state) => ({
-          orders: state.orders.map((order) =>
-            order.id === orderId ? { ...order, status } : order
-          )
-        }));
+      deleteProduct: async (id) => {
+        set({ loading: true, error: null });
+        try {
+          const { error } = await supabaseAdmin
+            .from('products')
+            .delete()
+            .eq('id', id);
+
+          if (error) throw error;
+
+          set((state) => ({
+            products: state.products.filter((p) => p.id !== id),
+          }));
+        } catch (error) {
+          set({ error: 'Failed to delete product' });
+          console.error('Error deleting product:', error);
+          throw error;
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      fetchOrders: async () => {
+        set({ loading: true, error: null });
+        try {
+          const { data: orders, error: ordersError } = await supabaseAdmin
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (ordersError) throw ordersError;
+
+          // Fetch order items for each order
+          const ordersWithItems = await Promise.all(
+            (orders || []).map(async (order) => {
+              const { data: items, error: itemsError } = await supabaseAdmin
+                .from('order_items')
+                .select('*')
+                .eq('order_id', order.id);
+
+              if (itemsError) throw itemsError;
+
+              return {
+                ...order,
+                items: items || [],
+              };
+            })
+          );
+
+          set({ orders: ordersWithItems });
+        } catch (error) {
+          set({ error: 'Failed to fetch orders' });
+          console.error('Error fetching orders:', error);
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      updateOrderStatus: async (orderId, status) => {
+        set({ loading: true, error: null });
+        try {
+          const { error } = await supabaseAdmin
+            .from('orders')
+            .update({ status, updated_at: new Date().toISOString() })
+            .eq('id', orderId);
+
+          if (error) throw error;
+
+          set((state) => ({
+            orders: state.orders.map((order) =>
+              order.id === orderId ? { ...order, status } : order
+            ),
+          }));
+        } catch (error) {
+          set({ error: 'Failed to update order status' });
+          console.error('Error updating order status:', error);
+          throw error;
+        } finally {
+          set({ loading: false });
+        }
       },
 
       getStats: () => {
@@ -110,7 +234,7 @@ export const useAdminStore = create<AdminStore>()(
         const pendingOrders = state.orders.filter(order => order.status === 'pending').length;
         const totalRevenue = state.orders
           .filter(order => order.status === 'delivered')
-          .reduce((sum, order) => sum + order.total, 0);
+          .reduce((sum, order) => sum + order.total_amount, 0);
 
         return {
           totalProducts,
@@ -122,6 +246,10 @@ export const useAdminStore = create<AdminStore>()(
     }),
     {
       name: 'admin-storage',
+      partialize: (state) => ({ 
+        products: state.products,
+        orders: state.orders 
+      }),
     }
   )
 );

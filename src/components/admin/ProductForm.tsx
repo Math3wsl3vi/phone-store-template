@@ -9,11 +9,12 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ product, onClose }: ProductFormProps) {
-  const { addProduct, updateProduct } = useAdminStore();
+  const { addProduct, updateProduct, loading, error } = useAdminStore();
   
   const [formData, setFormData] = useState({
     name: '',
-    image: '',
+    description: '',
+    image_url: '',
     price: 0,
     display: '',
     processor: '',
@@ -21,7 +22,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     brand: '',
     category: '',
     stock: 0,
-    isNew: false,
+    is_new: false,
     colors: [] as string[]
   });
 
@@ -31,7 +32,8 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     if (product) {
       setFormData({
         name: product.name,
-        image: product.image,
+        description: product.description || '',
+        image_url: product.image_url,
         price: product.price,
         display: product.specs.display,
         processor: product.specs.processor,
@@ -39,18 +41,19 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         brand: product.brand,
         category: product.category,
         stock: product.stock,
-        isNew: product.isNew || false,
+        is_new: product.is_new,
         colors: product.colors
       });
     }
   }, [product]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const productData = {
       name: formData.name,
-      image: formData.image,
+      description: formData.description,
+      image_url: formData.image_url,
       price: formData.price,
       specs: {
         display: formData.display,
@@ -60,17 +63,20 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
       brand: formData.brand,
       category: formData.category,
       stock: formData.stock,
-      isNew: formData.isNew,
+      is_new: formData.is_new,
       colors: formData.colors
     };
 
-    if (product) {
-      updateProduct(product.id, productData);
-    } else {
-      addProduct(productData);
+    try {
+      if (product) {
+        await updateProduct(product.id, productData);
+      } else {
+        await addProduct(productData);
+      }
+      onClose();
+    } catch (error) {
+      // Error is handled by the store
     }
-    
-    onClose();
   };
 
   const addColor = () => {
@@ -90,6 +96,13 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     }));
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addColor();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -102,11 +115,17 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
           </button>
         </div>
 
+        {error && (
+          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Name
+                Product Name *
               </label>
               <input
                 type="text"
@@ -119,24 +138,26 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image URL
+                Image URL *
               </label>
               <input
                 type="url"
                 required
-                value={formData.image}
-                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                value={formData.image_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (Ksh)
+                Price (Ksh) *
               </label>
               <input
                 type="number"
                 required
+                min="0"
+                step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -145,11 +166,12 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stock
+                Stock *
               </label>
               <input
                 type="number"
                 required
+                min="0"
                 value={formData.stock}
                 onChange={(e) => setFormData(prev => ({ ...prev, stock: Number(e.target.value) }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -158,11 +180,12 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Display
+                Display *
               </label>
               <input
                 type="text"
                 required
+                placeholder='6.9" Super Retina XDR'
                 value={formData.display}
                 onChange={(e) => setFormData(prev => ({ ...prev, display: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -171,11 +194,12 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Processor
+                Processor *
               </label>
               <input
                 type="text"
                 required
+                placeholder="A19 Pro"
                 value={formData.processor}
                 onChange={(e) => setFormData(prev => ({ ...prev, processor: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -184,11 +208,12 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Storage
+                Storage *
               </label>
               <input
                 type="text"
                 required
+                placeholder="256GB"
                 value={formData.storage}
                 onChange={(e) => setFormData(prev => ({ ...prev, storage: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -197,7 +222,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Brand
+                Brand *
               </label>
               <select
                 required
@@ -208,13 +233,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 <option value="">Select Brand</option>
                 <option value="iPhone">iPhone</option>
                 <option value="Samsung">Samsung</option>
+                <option value="Google">Google</option>
+                <option value="OnePlus">OnePlus</option>
                 <option value="Other">Other</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
+                Category *
               </label>
               <select
                 required
@@ -226,8 +253,23 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 <option value="flagship">Flagship</option>
                 <option value="mid-range">Mid Range</option>
                 <option value="budget">Budget</option>
+                <option value="foldable">Foldable</option>
               </select>
             </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Product description..."
+            />
           </div>
 
           {/* Colors */}
@@ -240,7 +282,8 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 type="text"
                 value={colorInput}
                 onChange={(e) => setColorInput(e.target.value)}
-                placeholder="Add color"
+                onKeyPress={handleKeyPress}
+                placeholder="Add color (e.g., Titanium Black)"
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -255,13 +298,13 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
               {formData.colors.map((color) => (
                 <span
                   key={color}
-                  className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm"
+                  className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
                 >
                   {color}
                   <button
                     type="button"
                     onClick={() => removeColor(color)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-blue-600 hover:text-blue-800 ml-1"
                   >
                     ×
                   </button>
@@ -275,8 +318,8 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
             <input
               type="checkbox"
               id="isNew"
-              checked={formData.isNew}
-              onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
+              checked={formData.is_new}
+              onChange={(e) => setFormData(prev => ({ ...prev, is_new: e.target.checked }))}
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
             <label htmlFor="isNew" className="ml-2 text-sm text-gray-700">
@@ -288,15 +331,24 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={loading}
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
             >
-              {product ? 'Update Product' : 'Add Product'}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {product ? 'Updating...' : 'Adding...'}
+                </>
+              ) : (
+                product ? 'Update Product' : 'Add Product'
+              )}
             </button>
           </div>
         </form>

@@ -1,8 +1,9 @@
+// src/components/product/ProductCard.tsx
 import React from "react";
 import { Link } from "react-router-dom";
 
 interface ProductCardProps {
-  id: number;
+  id: string;
   name: string;
   image: string;
   price: number;
@@ -12,13 +13,22 @@ interface ProductCardProps {
     storage: string;
   };
   isNew?: boolean;
+  brand?: string;
 }
 
-export function ProductCard({ id, name, image, price, specs, isNew }: ProductCardProps) {
+export function ProductCard({
+  id,
+  name,
+  image,
+  price,
+  specs,
+  isNew,
+  brand,
+}: ProductCardProps) {
   return (
     <Link to={`/product/${id}`} className="group block h-full">
       <div className="flex flex-col h-full bg-white shadow-md hover:shadow-xl transition rounded-lg overflow-hidden">
-        {/* Image wrapper with fixed height */}
+        {/* Image Section */}
         <div className="relative w-full h-64 flex items-center justify-center bg-gray-50 overflow-hidden">
           <img
             src={image}
@@ -32,7 +42,7 @@ export function ProductCard({ id, name, image, price, specs, isNew }: ProductCar
           )}
         </div>
 
-        {/* Content (fills remaining space evenly) */}
+        {/* Content Section */}
         <div className="flex flex-col flex-grow p-4">
           <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 min-h-[3rem]">
             {name}
@@ -40,13 +50,16 @@ export function ProductCard({ id, name, image, price, specs, isNew }: ProductCar
           <p className="text-gray-600 text-sm mb-2 line-clamp-2 min-h-[2.5rem]">
             {specs.display} • {specs.processor} • {specs.storage}
           </p>
-          <p className="text-xl font-bold text-gray-900 mt-auto">
-            Ksh {price.toLocaleString()}
-          </p>
 
-          <button className="mt-4 w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition">
-            Check It Out
-          </button>
+          {/* Pushes price + button to bottom */}
+          <div className="mt-auto">
+            <p className="text-xl font-bold text-gray-900 mb-3">
+              Ksh {price.toLocaleString()}
+            </p>
+            <button className="w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition">
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     </Link>
