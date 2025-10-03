@@ -204,30 +204,84 @@ export const useAdminStore = create<AdminStore>()(
           set({ loading: false });
         }
       },
+          updateOrderStatus: async (orderId, status) => {
+            set({ loading: true, error: null });
+            try {
+              // Get the current order before updating
+              const { data: currentOrder, error: fetchError } = await supabaseAdmin
+                .from('orders')
+                .select('*, items:order_items(*)')
+                .eq('id', orderId)
+                .single();
 
-      updateOrderStatus: async (orderId, status) => {
-        set({ loading: true, error: null });
-        try {
-          const { error } = await supabaseAdmin
-            .from('orders')
-            .update({ status, updated_at: new Date().toISOString() })
-            .eq('id', orderId);
+              if (fetchError) throw fetchError;
 
-          if (error) throw error;
+              const previousStatus = currentOrder.status;
 
-          set((state) => ({
-            orders: state.orders.map((order) =>
-              order.id === orderId ? { ...order, status } : order
-            ),
-          }));
-        } catch (error) {
-          set({ error: 'Failed to update order status' });
-          console.error('Error updating order status:', error);
-          throw error;
-        } finally {
-          set({ loading: false });
-        }
-      },
+              // Update order status
+              const { error: updateError } = await supabaseAdmin
+                .from('orders')
+                .update({ status, updated_at: new Date().toISOString() })
+                .eq('id', orderId);
+
+              if (updateError) throw updateError;
+
+              // If order is being marked as shipped or delivered for the first time, reduce stock
+              if ((status === 'shipped' || status === 'delivered') && 
+                  previousStatus !== 'shipped' && previousStatus !== 'delivered') {
+                
+                // Reduce stock for each item in the order
+                for (const item of currentOrder.items) {
+                  // Get current product stock
+                  const { data: product, error: productError } = await supabaseAdmin
+                    .from('products')
+                    .select('stock')
+                    .eq('id', item.product_id)
+                    .single();
+
+                  if (productError) {
+                    console.error('Error fetching product:', productError);
+                    continue;
+                  }
+
+                  // Update product stock
+                  const newStock = Math.max(0, product.stock - item.quantity);
+                  
+                  const { error: stockError } = await supabaseAdmin
+                    .from('products')
+                    .update({ stock: newStock })
+                    .eq('id', item.product_id);
+
+                  if (stockError) {
+                    console.error('Error updating product stock:', stockError);
+                  }
+                }
+
+                // Refresh products in the store
+                const { data: updatedProducts } = await supabaseAdmin
+                  .from('products')
+                  .select('*')
+                  .order('created_at', { ascending: false });
+
+                if (updatedProducts) {
+                  set({ products: updatedProducts });
+                }
+              }
+
+              // Update orders in state
+              set((state) => ({
+                orders: state.orders.map((order) =>
+                  order.id === orderId ? { ...order, status } : order
+                ),
+              }));
+            } catch (error) {
+              set({ error: 'Failed to update order status' });
+              console.error('Error updating order status:', error);
+              throw error;
+            } finally {
+              set({ loading: false });
+            }
+          },
 
               // In your adminStore.ts, add this method:
        // In your adminStore.ts, fix the getOrderById method:
