@@ -1,8 +1,14 @@
 "use client";
 import { motion } from "framer-motion";
-
+import { useNavigate } from "react-router-dom";
 
 export default function Hero() {
+  const navigate = useNavigate();
+
+  const handleBuyNow = () => {
+    navigate("/product/549bd041-38df-473c-8686-c94c456a3fc5");
+  };
+
   return (
     <section className="relative md:h-screen min-h-screen w-full bg-black text-white overflow-hidden pt-24">
       {/* Background gradient */}
@@ -25,11 +31,11 @@ export default function Hero() {
             breathtaking design, and advanced AI features.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <button className="px-8 py-3 bg-white text-black rounded-md text-lg font-medium hover:bg-gray-200 transition">
+            <button
+              onClick={handleBuyNow}
+              className="px-8 py-3 bg-white text-black rounded-md text-lg font-medium hover:bg-gray-200 transition"
+            >
               Buy Now
-            </button>
-            <button className="px-8 py-3 border border-white rounded-md text-lg font-medium hover:bg-gray-800 transition">
-              Learn More
             </button>
           </div>
         </motion.div>
@@ -41,12 +47,11 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.3 }}
           className="relative mt-12 md:mt-0"
         >
-        <img
-                src="https://i.pinimg.com/736x/09/b3/13/09b31385fcf5381f3f166aa87f3dc03f.jpg"
-                alt="iPhone 17 Pro Max"
-                className="w-full max-w-[900px] h-full mx-auto object-contain drop-shadow-2xl"
-                />
-
+          <img
+            src="https://i.pinimg.com/736x/09/b3/13/09b31385fcf5381f3f166aa87f3dc03f.jpg"
+            alt="iPhone 17 Pro Max"
+            className="w-full max-w-[900px] h-full mx-auto object-contain drop-shadow-2xl"
+          />
         </motion.div>
       </div>
 

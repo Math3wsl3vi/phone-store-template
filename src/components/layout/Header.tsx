@@ -66,8 +66,8 @@ export function Header({ onCartClick }: HeaderProps) {
           <Link to="/samsung" className={`${textColor} font-medium`}>
             Samsung
           </Link>
-          <Link to="/other-brands" className={`${textColor} font-medium`}>
-            Other Brands
+          <Link to="/samsung" className={`${textColor} font-medium`}>
+            Gadgets
           </Link>
           <Link to="/support" className={`${textColor} font-medium`}>
             Support
@@ -159,8 +159,8 @@ export function Header({ onCartClick }: HeaderProps) {
               <Link to="/samsung" className="text-gray-800 hover:text-black font-medium py-2">
                 Samsung
               </Link>
-              <Link to="/other-brands" className="text-gray-800 hover:text-black font-medium py-2">
-                Other Brands
+              <Link to="/samsung" className="text-gray-800 hover:text-black font-medium py-2">
+                Gadgets
               </Link>
               <Link to="/support" className="text-gray-800 hover:text-black font-medium py-2">
                 Support

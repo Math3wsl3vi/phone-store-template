@@ -41,6 +41,7 @@ export function App() {
               />
               <Route path="/iphones" element={<IPhoneShop />} />
               <Route path="/samsung" element={<SamsungShop />} />
+
             </Routes>
           </main>
           <Footer />

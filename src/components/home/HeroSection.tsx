@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { ProductCard } from "../product/ProductCard"; 
 import { Product, ProductsService } from "../../service/productService";
 
@@ -29,13 +28,16 @@ export function HeroSection() {
   if (loading) {
     return (
       <section className="py-16 bg-gray-50">
-        <div className="md:max-w-fit mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             New Arrivals
           </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(3)].map((_, index) => (
-              <div key={index} className="animate-pulse bg-white rounded-lg shadow-md p-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(4)].map((_, index) => (
+              <div
+                key={index}
+                className="animate-pulse bg-white rounded-lg shadow-md p-4"
+              >
                 <div className="bg-gray-200 h-48 rounded-lg mb-4"></div>
                 <div className="bg-gray-200 h-4 rounded w-3/4 mb-2"></div>
                 <div className="bg-gray-200 h-3 rounded w-1/2"></div>
@@ -50,7 +52,7 @@ export function HeroSection() {
   if (error) {
     return (
       <section className="py-16 bg-gray-50">
-        <div className="md:max-w-fit mx-auto px-6 text-center">
+        <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">New Arrivals</h2>
           <p className="text-red-600 mb-4">{error}</p>
           <button
@@ -67,9 +69,11 @@ export function HeroSection() {
   if (newArrivals.length === 0) {
     return (
       <section className="py-16 bg-gray-50">
-        <div className="md:max-w-fit mx-auto px-6 text-center">
+        <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">New Arrivals</h2>
-          <p className="text-gray-600">No new products available at the moment.</p>
+          <p className="text-gray-600">
+            No new products available at the moment.
+          </p>
         </div>
       </section>
     );
@@ -77,14 +81,14 @@ export function HeroSection() {
 
   return (
     <section className="py-16 bg-gray-50">
-      <div className="md:max-w-fit mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6">
         {/* Section Heading */}
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
           New Arrivals
         </h2>
 
         {/* Products Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
           {newArrivals.map((product) => (
             <ProductCard
               key={product.id}
