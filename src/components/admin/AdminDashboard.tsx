@@ -10,8 +10,10 @@ import {
   Edit3,
   Trash2,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from 'lucide-react';
+import { OrderDetailsModal } from './OrderDetailsModal';
 
 interface AdminDashboardProps {
   onShowProductForm: () => void;
@@ -30,10 +32,13 @@ export function AdminDashboard({ onShowProductForm, onEditProduct }: AdminDashbo
     fetchOrders,
     deleteProduct, 
     updateOrderStatus,
-    getStats 
+    getStats ,
+    getOrderById
   } = useAdminStore();
   
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
   
   const tabs: { id: ActiveTab; label: string; icon: React.ComponentType<any> }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: Package },
@@ -63,6 +68,31 @@ export function AdminDashboard({ onShowProductForm, onEditProduct }: AdminDashbo
       } catch (error) {
         // Error handled by store
       }
+    }
+  };
+
+    const handleViewOrderDetails = async (orderId: string) => {
+    setOrderDetailsLoading(true);
+    try {
+      const order = await getOrderById(orderId);
+      setSelectedOrder(order);
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+    } finally {
+      setOrderDetailsLoading(false);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      await updateOrderStatus(orderId, status);
+      // Refresh the selected order to show updated status
+      if (selectedOrder && selectedOrder.id === orderId) {
+        const updatedOrder = await getOrderById(orderId);
+        setSelectedOrder(updatedOrder);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
     }
   };
 
@@ -311,7 +341,7 @@ export function AdminDashboard({ onShowProductForm, onEditProduct }: AdminDashbo
           </div>
         )}
 
-        {/* Orders Tab */}
+     {/* Orders Tab - Updated with View Details functionality */}
         {activeTab === 'orders' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -338,82 +368,97 @@ export function AdminDashboard({ onShowProductForm, onEditProduct }: AdminDashbo
                 <p className="text-gray-500">Orders will appear here when customers make purchases.</p>
               </div>
             ) : (
-              <div className="bg-white shadow rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Order ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Customer
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {orders.map((order) => (
-                      <tr key={order.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          #{order.id.slice(-6)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div>
-                            <div className="font-medium">{order.customer_name}</div>
-                            <div className="text-gray-500">{order.customer_email}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          Ksh {order.total_amount.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <select
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value as Order['status'])}
-                            disabled={loading}
-                            className={`text-xs font-medium px-2 py-1 rounded-full border-0 focus:ring-2 focus:ring-blue-500 ${
-                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                              order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
-                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                              'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button className="text-blue-600 hover:text-blue-900">
-                            View Details
-                          </button>
-                        </td>
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Order ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Customer
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Total
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {orders.map((order) => (
+                        <tr key={order.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            #{order.id.slice(-8).toUpperCase()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div>
+                              <div className="font-medium">{order.customer_name}</div>
+                              <div className="text-gray-500">{order.customer_email}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            Ksh {order.total_amount.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <select
+                              value={order.status}
+                              onChange={(e) => updateOrderStatus(order.id, e.target.value as Order['status'])}
+                              disabled={loading}
+                              className={`text-xs font-medium px-2 py-1 rounded-full border-0 focus:ring-2 focus:ring-blue-500 ${
+                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                                order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                                order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button 
+                              onClick={() => handleViewOrderDetails(order.id)}
+                              disabled={orderDetailsLoading}
+                              className="flex items-center gap-1 text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
         )}
       </main>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        onUpdateStatus={handleUpdateOrderStatus}
+        loading={orderDetailsLoading}
+      />
     </div>
   );
 }

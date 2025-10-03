@@ -36,6 +36,7 @@ export interface Order {
   customer_name: string;
   created_at: string;
   items: OrderItem[];
+  updated_at?: string
 }
 
 export interface OrderItem {
@@ -57,6 +58,7 @@ interface AdminStore {
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   fetchOrders: () => Promise<void>;
+  getOrderById: (orderId: string) => Promise<Order | null>; 
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   getStats: () => {
     totalProducts: number;
@@ -226,6 +228,55 @@ export const useAdminStore = create<AdminStore>()(
           set({ loading: false });
         }
       },
+
+              // In your adminStore.ts, add this method:
+       // In your adminStore.ts, fix the getOrderById method:
+            getOrderById: async (orderId: string): Promise<Order | null> => {
+              try {
+                const { data: order, error } = await supabaseAdmin
+                  .from('orders')
+                  .select(`
+                    *,
+                    order_items (
+                      id,
+                      product_id,
+                      quantity,
+                      unit_price,
+                      product_name,
+                      product_image,
+                      created_at
+                    )
+                  `)
+                  .eq('id', orderId)
+                  .single();
+
+                if (error) {
+                  console.error('Error fetching order:', error);
+                  return null;
+                }
+
+                if (!order) {
+                  return null;
+                }
+
+                // Transform the data to match your Order interface
+                const transformedOrder: Order = {
+                  ...order,
+                  items: order.order_items || [], // Use the order_items from the query
+                  // Remove the nested order_items field to avoid confusion
+                };
+
+                // Remove the nested field to prevent duplication
+                delete (transformedOrder as any).order_items;
+
+                console.log('Fetched order with items:', transformedOrder);
+                return transformedOrder;
+
+              } catch (error) {
+                console.error('Error in getOrderById:', error);
+                return null;
+              }
+},
 
       getStats: () => {
         const state = get();
