@@ -1,52 +1,111 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import { products } from "../../utlis/data";
 import { useCartStore } from "../../store/cartStore";
+import { Product, ProductsService } from "../../service/productService";
 
-interface SingleProductPageProps {
-  products: typeof products; // Or define a proper Product type
-}
-
-
-export default function SingleProductPage({ products }: SingleProductPageProps) {
+export default function SingleProductPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const addToCart = useCartStore((state) => state.addToCart);
 
-    const handleAddToCart = () => {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState("");
+
+  // Fetch product data from Supabase
+  useEffect(() => {
+    const fetchProductData = async () => {
+      if (!productId) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch the main product
+        const productData = await ProductsService.getProductById(productId);
+        
+        if (!productData) {
+          setError("Product not found");
+          return;
+        }
+
+        setProduct(productData);
+        setSelectedColor(productData.colors?.[0] || "");
+
+        // Fetch related products (same brand)
+        const allProducts = await ProductsService.getAllProducts();
+        const related = allProducts
+          .filter(p => p.id !== productData.id && p.brand === productData.brand)
+          .slice(0, 3);
+        
+        setRelatedProducts(related);
+
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductData();
+  }, [productId]);
+
+  const handleAddToCart = () => {
     if (product) {
       addToCart({
-        id: String(product.id),
+        id: product.id, // Use the actual UUID from database
+        product_id: product.id,
         name: product.name,
         price: product.price,
         quantity: 1,
-        image: product.image,
+        image: product.image_url, // Use image_url from database
       });
     }
   };
 
-  
-  // Find the product based on URL parameter with proper type handling
-  const product = products.find((p) => p.id === parseInt(productId || "1")) || products[0];
-  
-  const [selectedColor, setSelectedColor] = useState("");
-
-  // Reset selected color when product changes
-  useEffect(() => {
-    if (product) {
-      setSelectedColor(product.colors?.[0] || "");
-    }
-  }, [product]);
-
-  // Handle navigation to product details with proper typing
-  const handleProductClick = (newProductId: number) => {
+  const handleProductClick = (newProductId: string) => {
     navigate(`/product/${newProductId}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (!product) {
-    return <div>Product not found</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-20">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="animate-pulse">
+            <div className="text-center mb-8">
+              <div className="h-6 bg-gray-200 rounded w-32 mx-auto mb-2"></div>
+              <div className="h-12 bg-gray-200 rounded w-64 mx-auto mb-3"></div>
+              <div className="h-8 bg-gray-200 rounded w-48 mx-auto"></div>
+            </div>
+            <div className="max-w-4xl mx-auto mb-16">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-white pt-20">
+        <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
+          <p className="text-gray-600 mb-8">{error || "The product you're looking for doesn't exist."}</p>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -55,7 +114,7 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Product Header */}
         <div className="text-center mb-8">
-          {product.isNew && (
+          {product.is_new && (
             <p className="text-orange-600 font-semibold text-sm mb-2 tracking-wide">NEW</p>
           )}
           <h1 className="text-5xl md:text-6xl font-semibold mb-3 tracking-tight">
@@ -69,9 +128,9 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
         {/* Product Image */}
         <div className="max-w-4xl mx-auto mb-16">
           <img
-            src={product.image}
+            src={product.image_url}
             alt={product.name}
-            className="w-full h-auto"
+            className="w-full h-auto rounded-lg"
           />
         </div>
 
@@ -86,7 +145,7 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
                   <span className="text-sm text-gray-600">{selectedColor}</span>
                 </div>
                 <div className="flex gap-3">
-                  {product.colors.map((color) => (
+                  {product.colors.map((color: string) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
@@ -138,16 +197,32 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
               ))}
             </div>
 
+            {/* Stock Information */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Availability</span>
+                <span className={`font-semibold ${
+                  product.stock > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
+                </span>
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="space-y-4">
               <button 
                 onClick={handleAddToCart}
-                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                disabled={product.stock === 0}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5" />
-                Add to Bag
+                {product.stock > 0 ? 'Add to Bag' : 'Out of Stock'}
               </button>
-              <button className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors">
+              <button 
+                className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors disabled:border-gray-400 disabled:text-gray-400 disabled:cursor-not-allowed"
+                disabled={product.stock === 0}
+              >
                 Buy Now
               </button>
             </div>
@@ -161,7 +236,7 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
                   </svg>
                   <div>
                     <p className="font-semibold text-gray-900">Free delivery</p>
-                    <p className="text-gray-600">Or pick up available at Apple Store</p>
+                    <p className="text-gray-600">Free delivery on all orders over Ksh 10,000</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -179,15 +254,13 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
         </div>
 
         {/* Related Products */}
-        <div className="max-w-7xl mx-auto mt-24">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-8 text-center">
-            You might also like
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {products
-              .filter((p) => p.id !== product.id)
-              .slice(0, 3)
-              .map((relatedProduct) => (
+        {relatedProducts.length > 0 && (
+          <div className="max-w-7xl mx-auto mt-24">
+            <h2 className="text-3xl md:text-4xl font-semibold mb-8 text-center">
+              You might also like
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {relatedProducts.map((relatedProduct) => (
                 <div
                   key={relatedProduct.id}
                   className="group cursor-pointer"
@@ -195,13 +268,13 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
                 >
                   <div className="bg-gray-50 rounded-3xl overflow-hidden mb-4 transition-transform group-hover:scale-105">
                     <img
-                      src={relatedProduct.image}
+                      src={relatedProduct.image_url}
                       alt={relatedProduct.name}
-                      className="w-full h-auto"
+                      className="w-full h-64 object-cover"
                     />
                   </div>
                   <div className="text-center">
-                    {relatedProduct.isNew && (
+                    {relatedProduct.is_new && (
                       <p className="text-orange-600 font-semibold text-xs mb-1">NEW</p>
                     )}
                     <h3 className="font-semibold text-lg mb-1">
@@ -216,8 +289,9 @@ export default function SingleProductPage({ products }: SingleProductPageProps) 
                   </div>
                 </div>
               ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

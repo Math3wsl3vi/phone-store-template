@@ -148,22 +148,50 @@ export function FeaturedProduct() {
             </div>
 
             {/* Colors */}
-            <div className="flex items-center space-x-4">
-              {featuredProduct.colors.map((color, index) => (
-                <div 
-                  key={index}
-                  className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
-                  style={{ 
-                    backgroundColor: color.toLowerCase().includes('black') ? '#000' :
-                                   color.toLowerCase().includes('blue') ? '#3b82f6' :
-                                   color.toLowerCase().includes('white') ? '#f3f4f6' :
-                                   color.toLowerCase().includes('gray') ? '#9ca3af' :
-                                   color.toLowerCase().includes('titanium') ? '#71717a' :
-                                   '#6b7280'
-                  }}
-                />
-              ))}
+          <div className="flex items-center space-x-4">
+  {featuredProduct.colors.map((color, index) => {
+    const c = color.toLowerCase();
+
+    const colorMap: Record<string, string> = {
+      black: '#000000',
+      white: '#f3f4f6',
+      blue: '#3b82f6',
+      navy: '#1e40af',
+      red: '#ef4444',
+      green: '#22c55e',
+      yellow: '#facc15',
+      purple: '#a855f7',
+      pink: '#ec4899',
+      gray: '#9ca3af',
+      silver: '#c0c0c0',
+      gold: '#fcd34d',
+      titanium: '#71717a',
+      graphite: '#374151',
+      starlight: '#fef3c7',
+      midnight: '#0f172a',
+      skyblue: '#0ea5e9',
+      coral: '#f97316',
+      violet: '#8b5cf6',
+      lime: '#84cc16',
+      orange: '#f97316',
+      bronze: '#cd7f32',
+    };
+
+    // Find matching key safely
+    const matchedKey = Object.keys(colorMap).find(k => c.includes(k));
+    const bgColor = matchedKey ? colorMap[matchedKey] : '#6b7280';
+
+    return (
+      <div 
+        key={index}
+        className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
+        style={{ backgroundColor: bgColor }}
+      />
+    );
+  })}
             </div>
+
+
           </div>
           
           <div className="order-1 md:order-2 flex justify-center">
