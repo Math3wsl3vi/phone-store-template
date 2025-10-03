@@ -1,5 +1,6 @@
 // src/services/productsService.ts
-import { supabase } from '../lib/supabase'
+
+import { supabaseAdmin } from "../lib/supabase"
 
 export interface Product {
   id: string
@@ -23,7 +24,7 @@ export interface Product {
 
 export class ProductsService {
   static async getAllProducts(): Promise<Product[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .select('*')
       .eq('is_active', true)
@@ -34,7 +35,7 @@ export class ProductsService {
   }
 
   static async getProductById(id: string): Promise<Product | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .select('*')
       .eq('id', id)
@@ -46,7 +47,7 @@ export class ProductsService {
   }
 
   static async getProductsByBrand(brand: string): Promise<Product[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .select('*')
       .eq('brand', brand)
@@ -58,7 +59,7 @@ export class ProductsService {
   }
 
   static async getFeaturedProducts(): Promise<Product[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .select('*')
       .eq('is_new', true)
