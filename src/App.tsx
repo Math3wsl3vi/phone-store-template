@@ -6,11 +6,12 @@ import { HomePage } from "./pages/Home";
 import { CartPanel } from "./components/cart/CartPanel";
 import { ProductCatalog } from "./components/home/ProductCatalog";
 import SingleProductPage from "./components/catalog/SingleProductPage";
-import { CartProvider } from "./context/CartContext"; 
+import { CartProvider } from "./context/CartContext";
 import CheckoutPage from "./components/cart/Checkout";
-import { products } from "./utlis/data";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import { AdminLogin } from "./components/admin/AdminLogin";
+import { IPhoneShop } from "./components/shop/IphoneShop";
+import { SamsungShop } from "./components/shop/SamsungShop";
 
 export function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -28,10 +29,18 @@ export function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/catalog" element={<ProductCatalog />} />
-              <Route path="/product/:productId" element={<SingleProductPage products={products} />} />
-              <Route path="/checkout" element={<CheckoutPage />} /> 
+              <Route
+                path="/product/:productId"
+                element={<SingleProductPage/>}
+              />
+              <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/admin" element={<AdminRoute />} />
-              <Route path="/admin/login" element={<AdminLogin onLogin={handleAdminLogin} />} />
+              <Route
+                path="/admin/login"
+                element={<AdminLogin onLogin={handleAdminLogin} />}
+              />
+              <Route path="/iphones" element={<IPhoneShop />} />
+              <Route path="/samsung" element={<SamsungShop />} />
             </Routes>
           </main>
           <Footer />
