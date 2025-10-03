@@ -142,7 +142,7 @@ export default function SingleProductPage() {
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-gray-900">Color</h3>
-                  <span className="text-sm text-gray-600">{selectedColor}</span>
+                  <span className="text-sm text-gray-600 capitalize">{selectedColor}</span>
                 </div>
                 <div className="flex gap-3">
                   {product.colors.map((color: string) => (
@@ -220,6 +220,7 @@ export default function SingleProductPage() {
                 {product.stock > 0 ? 'Add to Bag' : 'Out of Stock'}
               </button>
               <button 
+               onClick={handleAddToCart}
                 className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors disabled:border-gray-400 disabled:text-gray-400 disabled:cursor-not-allowed"
                 disabled={product.stock === 0}
               >

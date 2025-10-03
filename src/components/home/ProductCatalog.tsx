@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+"use client";
+import { useState, useEffect, useCallback } from "react";
 import { ProductCard } from "../product/ProductCard";
-import { SlidersHorizontal, ChevronDown, RefreshCw } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, RefreshCw, Search } from "lucide-react";
 import { Product, ProductsService } from "../../service/productService";
 
 export function ProductCatalog() {
@@ -11,6 +12,7 @@ export function ProductCatalog() {
   const [selectedBrand, setSelectedBrand] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 200000]);
   const [sortBy, setSortBy] = useState("newest");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadProducts();
@@ -34,18 +36,36 @@ export function ProductCatalog() {
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    if (selectedBrand !== "All" && product.brand !== selectedBrand) return false;
-    if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
-    return true;
-  });
+  const filterAndSortProducts = useCallback(() => {
+    const filtered = products.filter((product) => {
+      // Search filter
+      if (
+        searchQuery &&
+        !product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+      // Brand filter
+      if (selectedBrand !== "All" && product.brand !== selectedBrand) {
+        return false;
+      }
+      // Price filter
+      if (product.price < priceRange[0] || product.price > priceRange[1]) {
+        return false;
+      }
+      return true;
+    });
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === "price-asc") return a.price - b.price;
-    if (sortBy === "price-desc") return b.price - a.price;
-    if (sortBy === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    return 0;
-  });
+    // Sort products
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "price-asc") return a.price - b.price;
+      if (sortBy === "price-desc") return b.price - a.price;
+      if (sortBy === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return 0;
+    });
+  }, [products, selectedBrand, priceRange, sortBy, searchQuery]);
+
+  const sortedProducts = filterAndSortProducts();
 
   // Get unique brands from products
   const brands = ["All", ...new Set(products.map(product => product.brand))];
@@ -94,6 +114,20 @@ export function ProductCatalog() {
         <h2 className="text-4xl font-extrabold mb-10 text-gray-900 tracking-tight">
           Explore Our Collection
         </h2>
+
+        {/* Search Bar */}
+        <div className="mb-8 lg:w-1/4">
+          <div className="relative max-w-md mx-auto lg:mx-0">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search gadgets by name..."
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none"
+            />
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
+          </div>
+        </div>
 
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Filters Sidebar */}
@@ -152,6 +186,7 @@ export function ProductCatalog() {
                   onClick={() => {
                     setSelectedBrand("All");
                     setPriceRange([0, 200000]);
+                    setSearchQuery("");
                   }}
                   className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition"
                 >
@@ -196,6 +231,7 @@ export function ProductCatalog() {
                   onClick={() => {
                     setSelectedBrand("All");
                     setPriceRange([0, 200000]);
+                    setSearchQuery("");
                   }}
                   className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
                 >
