@@ -76,22 +76,6 @@ export function Header({ onCartClick }: HeaderProps) {
 
         {/* Search + Cart */}
         <div className="hidden md:flex items-center space-x-6">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search"
-              className={`pl-10 pr-4 py-2 rounded-lg border ${
-                isScrolled
-                  ? "border-gray-300 bg-white text-gray-800 placeholder-gray-400"
-                  : "border-white/50 bg-white/10 text-white placeholder-white/70"
-              } focus:outline-none focus:ring-2 focus:ring-gray-200 w-48`}
-            />
-            <SearchIcon
-              className={`absolute left-3 top-2.5 h-5 w-5 ${
-                isScrolled ? "text-gray-400" : "text-white/70"
-              }`}
-            />
-          </div>
           <button
             onClick={onCartClick}
             className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -139,16 +123,6 @@ export function Header({ onCartClick }: HeaderProps) {
       {isMenuOpen && (
         <div className="md:hidden bg-white/90 backdrop-blur-md absolute top-full left-0 right-0 border-b border-gray-200 shadow-lg">
           <div className="container mx-auto px-4 py-2">
-            <div className="my-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200 w-full"
-                />
-                <SearchIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
             <nav className="flex flex-col space-y-4 pb-4">
               <Link to="/" className="text-gray-800 hover:text-black font-medium py-2">
                 Home
