@@ -1,11 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import { useCartStore, useCartTotal } from "../../store/cartStore"; // Import from Zustand store
+import { useCartStore, useCartTotal } from "../../store/cartStore";
+import { useNavigate } from "react-router-dom";
+import { OrdersService } from "../../service/orderService";
 
 export default function CheckoutPage() {
-  // Use Zustand store
-  const { cartItems } = useCartStore();
-  const total = useCartTotal(); // Use the computed total
+  const { cartItems, clearCart } = useCartStore();
+  const total = useCartTotal();
+  const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     fullName: "",
@@ -15,16 +17,69 @@ export default function CheckoutPage() {
     paymentMethod: "mpesa",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null); // Clear error when user starts typing
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    // Validation
     if (!formData.fullName || !formData.phone || !formData.address) {
-      alert("Please fill in all required fields.");
+      setError("Please fill in all required fields.");
       return;
     }
-    alert(`Order placed! Payment via ${formData.paymentMethod}.`);
+
+    if (cartItems.length === 0) {
+      setError("Your cart is empty.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Prepare order data
+      const orderData = {
+        customer_name: formData.fullName,
+        customer_email: formData.email || `customer-${Date.now()}@example.com`, // Fallback email
+        customer_phone: formData.phone,
+        shipping_address: formData.address,
+        payment_method: formData.paymentMethod,
+        total_amount: total,
+        items: cartItems.map(item => ({
+          product_id: item.product_id || item.id, // Use product_id if available, fallback to id
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        }))
+      };
+
+      console.log('Creating order with data:', orderData);
+
+      // Create order in Supabase
+      const order = await OrdersService.createOrder(orderData);
+      
+      console.log('Order created successfully:', order);
+
+      // Clear cart
+      clearCart();
+
+      // Show success message
+      alert(`Order placed successfully! Order ID: ${order.id.slice(-8).toUpperCase()}`);
+      
+      // Redirect to home or order confirmation page
+      navigate("/");
+
+    } catch (err: any) {
+      console.error('Error placing order:', err);
+      setError(err.message || "Failed to place order. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,6 +88,13 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Form - 2 columns */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
             {/* Shipping Section */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
@@ -65,7 +127,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     name="fullName"
-                    placeholder="Full Name"
+                    placeholder="Full Name *"
                     value={formData.fullName}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -89,7 +151,7 @@ export default function CheckoutPage() {
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="Phone Number"
+                    placeholder="Phone Number *"
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -100,7 +162,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     name="address"
-                    placeholder="Street Address"
+                    placeholder="Street Address *"
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -205,9 +267,17 @@ export default function CheckoutPage() {
                     {/* Place Order Button */}
                     <button
                       onClick={handlePlaceOrder}
-                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors text-base"
+                      disabled={loading || cartItems.length === 0}
+                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors text-base disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      Place Order
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        'Place Order'
+                      )}
                     </button>
                   </div>
                 )}
