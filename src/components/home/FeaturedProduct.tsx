@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Product, ProductsService } from '../../service/productService';
 import { useCartStore } from '../../store/cartStore';
 import { BatteryFullIcon, MemoryStick, Microchip, Plus, SmartphoneIcon } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export function FeaturedProduct() {
   const addToCart = useCartStore((state) => state.addToCart);
@@ -27,8 +28,7 @@ export function FeaturedProduct() {
       setLoading(false);
     }
   };
-
-  const handleAddToCart = () => {
+const handleAddToCart = () => {
     if (!featuredProduct) return;
     
     addToCart({
@@ -40,13 +40,28 @@ export function FeaturedProduct() {
       quantity: 1
     });
     
-    alert(`${featuredProduct.name} added to cart!`);
+    toast.success(`${featuredProduct.name} added to cart!`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
   };
 
   const handleBuyNow = () => {
     if (!featuredProduct) return;
     
-    handleAddToCart();
+    addToCart({
+      id: featuredProduct.id,
+      name: featuredProduct.name,
+      price: featuredProduct.price,
+      image: featuredProduct.image_url,
+      product_id: featuredProduct.id,
+      quantity: 1
+    });
+    
     navigate('/checkout');
   };
 

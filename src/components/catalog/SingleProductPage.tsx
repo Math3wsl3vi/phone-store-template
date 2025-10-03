@@ -67,6 +67,21 @@ export default function SingleProductPage() {
     }
   };
 
+  const handleBuyNow = () => {
+    if (product) {
+      addToCart({
+        id: product.id,
+        product_id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: product.image_url,
+      });
+      // Navigate to checkout page immediately
+      navigate('/checkout');
+    }
+  };
+
   const handleProductClick = (newProductId: string) => {
     navigate(`/product/${newProductId}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -220,7 +235,7 @@ export default function SingleProductPage() {
                 {product.stock > 0 ? 'Add to Bag' : 'Out of Stock'}
               </button>
               <button 
-               onClick={handleAddToCart}
+               onClick={handleBuyNow}
                 className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors disabled:border-gray-400 disabled:text-gray-400 disabled:cursor-not-allowed"
                 disabled={product.stock === 0}
               >
